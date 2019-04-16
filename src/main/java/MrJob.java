@@ -24,9 +24,16 @@ public class MrJob {
 
     public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable> {
 
+        public enum Count {
+            TOTAL_DOCUMENTS
+        }
+
         private final static IntWritable ONE = new IntWritable(1);
 
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+            //count the total number of documents
+            context.getCounter(Count.TOTAL_DOCUMENTS).increment(1);
+
             JSONObject jsonObject = new JSONObject(value.toString());
             String reviewText = jsonObject.getString("reviewText");
             //1.1 - Tokenization to unigrams
