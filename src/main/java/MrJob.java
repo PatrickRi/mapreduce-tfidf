@@ -10,25 +10,31 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.StringUtils;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Logger;
 
 
 public class MrJob {
+//    public static Logger log = Logger.getLogger(MrJob.class.getName());
+
     public static class DocIdFreq implements WritableComparable<DocIdFreq> {
         public DocIdFreq() {
 
         }
-        public DocIdFreq(Text docId, LongWritable frequency) {
+        public DocIdFreq(Text docId, LongWritable frequency, Text category) {
             this.docId = docId;
             this.frequency = frequency;
+            this.category = category;
         }
         public Text docId = new Text("");
         public LongWritable frequency = new LongWritable(0);
         public DoubleWritable tfidf = new DoubleWritable(0d);
+        public Text category = new Text("");
 
         @Override
         public int compareTo(DocIdFreq o) {
@@ -40,6 +46,7 @@ public class MrJob {
             this.docId.write(dataOutput);
             this.frequency.write(dataOutput);
             this.tfidf.write(dataOutput);
+            this.category.write(dataOutput);
         }
 
         @Override
@@ -47,6 +54,7 @@ public class MrJob {
             this.docId.readFields((dataInput));
             this.frequency.readFields((dataInput));
             this.tfidf.readFields((dataInput));
+            this.category.readFields((dataInput));
         }
     }
     private static Set<String> stopwords = new HashSet<>();
@@ -80,15 +88,11 @@ public class MrJob {
          * @throws InterruptedException
          */
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-<<<<<<< Updated upstream
             //count the total number of documents
-            context.getCounter(Count.TOTAL_DOCUMENTS).increment(1);
-
-=======
             HashMap<String, DocIdFreq> terms = new HashMap<>();
->>>>>>> Stashed changes
             JSONObject jsonObject = new JSONObject(value.toString());
             String reviewText = jsonObject.getString("reviewText");
+            String category = jsonObject.getString("category");
             String docId = jsonObject.getString("asin");
             context.getCounter(Count.TOTAL_DOCUMENTS).increment(1);
             //1.1 - Tokenization to unigrams
@@ -101,7 +105,7 @@ public class MrJob {
                     if (terms.containsKey(token)) {
                         terms.get(token).frequency.set(terms.get(token).frequency.get() + 1);
                     } else {
-                        terms.put(token, new DocIdFreq(new Text(docId), new LongWritable(1)));
+                        terms.put(token, new DocIdFreq(new Text(docId), new LongWritable(1), new Text(category)));
                     }
 //                }
             }
@@ -114,16 +118,25 @@ public class MrJob {
 
     public static class IntSumReducer extends Reducer<Text, DocIdFreq, Text, DocIdFreq> {
 
-        public static long documentCounter = 0;
+        public long documentCounter = 0;
         @Override
         public void setup(Context context) throws IOException, InterruptedException{
             Configuration conf = context.getConfiguration();
             Cluster cluster = new Cluster(conf);
             Job currentJob = cluster.getJob(context.getJobID());
+            try {
+                currentJob.waitForCompletion(true);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                throw new InterruptedException();
+            }
             documentCounter = currentJob.getCounters().findCounter(Count.TOTAL_DOCUMENTS).getValue();
+
+//            documentCounter = context.getCounter(Count.TOTAL_DOCUMENTS).getValue();
         }
 
         public void reduce(Text key, Iterable<DocIdFreq> values, Context context) throws IOException, InterruptedException {
+//            log.warning("ERR Counter=" + documentCounter);
 
             //TF_B= r(dt)=f(dt)
             //IDF_B2 = loge (N/ft)
@@ -137,6 +150,9 @@ public class MrJob {
                 f_t++;
                 newSet.add(val);
             }
+            System.out.println("OUT Counter=" + documentCounter);
+            if (true)
+                throw new RuntimeException("Counter=" + documentCounter);
 
             for(DocIdFreq val: newSet) {
                 double TF_B = val.frequency.get();
@@ -181,7 +197,9 @@ public class MrJob {
     public static void main(String[] args) throws Exception {
 //        stopwords = parseStopwords();
         Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "PR - VSM");
+//        conf.set("mapreduce.job.reduce.slowstart.completedmaps", "1.0");
+//        conf.set("mapred.reduce.slowstart.completed.maps", "1.0");
+        Job job = Job.getInstance(conf, "MrJOB");
         job.setNumReduceTasks(2);
         job.setJarByClass(MrJob.class);
         job.setMapperClass(TokenizerMapper.class);
@@ -189,6 +207,7 @@ public class MrJob {
         job.setReducerClass(IntSumReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(DocIdFreq.class);
+        job.setOutputFormatClass(SequenceFileOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
