@@ -28,6 +28,10 @@ public  class DocIdFreq implements WritableComparable<DocIdFreq> {
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
+//        dataOutput.writeBytes(this.docId.toString());
+//        dataOutput.writeLong(this.frequency.get());
+//        dataOutput.writeDouble((this.tfidf.get()));
+//        dataOutput.writeBytes(this.category.toString());
         this.docId.write(dataOutput);
         this.frequency.write(dataOutput);
         this.tfidf.write(dataOutput);
@@ -40,5 +44,16 @@ public  class DocIdFreq implements WritableComparable<DocIdFreq> {
         this.frequency.readFields((dataInput));
         this.tfidf.readFields((dataInput));
         this.category.readFields((dataInput));
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer result = new StringBuffer();
+        result.append("{ DocId=").append(this.docId.toString());
+        result.append(", frequency=").append(this.frequency.toString());
+        result.append(", tfidf=").append(this.tfidf.toString());
+        result.append(", category=").append(this.category.toString());
+        result.append("}");
+        return result.toString();
     }
 }

@@ -15,7 +15,7 @@ public class DocumentCountMapper extends Mapper<Object, Text, Text, DocIdFreq> {
      * @throws InterruptedException
      */
     public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-
+        System.out.println("CUSTOM IN M1");
         context.getCounter(MrChain.Count.TOTAL_DOCUMENTS).increment(1);
 
     }

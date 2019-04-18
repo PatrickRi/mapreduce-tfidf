@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -20,7 +21,7 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
      *
      *  TF_B = f(d,f)
      *  IDF_B2 = ln (N  / ft)
-     *
+     *  f_d,f ... Number of occurences of term t in d
      *  N ... Number of documents
      *  ft ... number of documents containing term t
      *
@@ -34,6 +35,7 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
      * @throws InterruptedException
      */
     public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+        System.out.println("CUSTOM IN M2 Key=" + key.toString() + ", Value=" + value.toString().substring(0, 20));
         //count the total number of documents
         HashMap<String, DocIdFreq> terms = new HashMap<>();
         JSONObject jsonObject = new JSONObject(value.toString());
@@ -42,7 +44,7 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
         String docId = jsonObject.getString("asin");
 
         //1.1 - Tokenization to unigrams
-        StringTokenizer itr = new StringTokenizer(reviewText);
+        StringTokenizer itr = new StringTokenizer(reviewText, "\\W+");
         while (itr.hasMoreTokens()) {
             //1.2 Casefolding
             String token = itr.nextToken().toLowerCase();
@@ -55,6 +57,8 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
             }
 //                }
         }
+
+
         // add terms to map
         for (Map.Entry<String, DocIdFreq> entry : terms.entrySet()) {
             context.write(new Text(entry.getKey()), entry.getValue());
