@@ -11,6 +11,8 @@ public  class Chi2DataMapper implements WritableComparable<Chi2DataMapper> {
     public Text term = new Text("");
     public LongWritable A = new LongWritable(0);
     public LongWritable B = new LongWritable(0);
+    public LongWritable C = new LongWritable(0);
+    public LongWritable D = new LongWritable(0);
 
     public Chi2DataMapper() {
 
@@ -19,11 +21,15 @@ public  class Chi2DataMapper implements WritableComparable<Chi2DataMapper> {
         this.term = term;
         this.A = A;
         this.B = B;
+        this.C = C;
+        this.D = D;
     }
-    public Chi2DataMapper(Text term, long A, long B) {
+    public Chi2DataMapper(Text term, long A, long B, long C, long D) {
         this.term = new Text(term);
         this.A = new LongWritable(A);
         this.B = new LongWritable(B);
+        this.C = new LongWritable(C);
+        this.D = new LongWritable(D);
     }
 
     @Override
