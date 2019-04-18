@@ -5,6 +5,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
@@ -43,29 +44,39 @@ public class MrChain {
         job.setNumReduceTasks(2);
         job.setJarByClass(MrChain.class);
         job.setMapperClass(TokenizerMapper.class);
-        job.setCombinerClass(IntSumReducer.class);
+//        job.setCombinerClass(IntSumReducer.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(DocIdFreq.class);
         job.setReducerClass(IntSumReducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(ArrayWritable.class);
+        job.setOutputValueClass(DocIdFreqArray.class);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]+"/2"));
 
+        boolean phase2succeeded = job.waitForCompletion(true);
+        if (!phase2succeeded) {
+            throw new IllegalStateException("Job failed!");
+        }
 // PHASE 3
-//        conf = new Configuration();
-//        conf.set("TOTAL_DOCUMENTCOUNT", Long.toString(count)); // inject counter value into job
-//        job = Job.getInstance(conf, "MrCHAIN-CHI2");
-//        job.setNumReduceTasks(2);
-//        job.setJarByClass(MrChain.class);
-//        job.setMapperClass(Chi2Mapper.class);
-////        job.setCombinerClass(Chi2Reducer.class);
-////        job.setReducerClass(Chi2Reducer.class);
-//        job.setOutputKeyClass(Text.class);
-////        job.setOutputValueClass(Chi2DataMapper.class);
-//        job.setOutputValueClass(Text.class);
-//        job.setOutputFormatClass(SequenceFileOutputFormat.class);
-//        FileInputFormat.addInputPath(job, new Path(args[0]));
-//        FileOutputFormat.setOutputPath(job, new Path(args[1]+"/3"));
+        conf = new Configuration();
+        conf.set("TOTAL_DOCUMENTCOUNT", Long.toString(count)); // inject counter value into job
+        job = Job.getInstance(conf, "MrCHAIN-CHI2");
+        job.setNumReduceTasks(2);
+        job.setInputFormatClass(SequenceFileInputFormat.class);
+        job.setJarByClass(MrChain.class);
+        job.setMapperClass(Chi2Mapper.class);
+//        job.setCombinerClass(Chi2Reducer.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Chi2DataMapperArray.class);
+        job.setReducerClass(Chi2Reducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Chi2DataMapperArray.class);
+        job.setOutputFormatClass(SequenceFileOutputFormat.class);
+        //FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileInputFormat.addInputPath(job, new Path(args[1]+"/2/part-r-00000"));
+        FileInputFormat.addInputPath(job, new Path(args[1]+"/2/part-r-00001"));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]+"/3"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
     }

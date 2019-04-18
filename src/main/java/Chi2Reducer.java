@@ -6,7 +6,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import java.io.IOException;
 import java.util.HashSet;
 
-public class Chi2Reducer extends Reducer<Text, DocIdFreq, Text, DocIdFreq> {
+public class Chi2Reducer extends Reducer<Text, Chi2DataMapperArray, Text, Text> {
 
     public long documentCounter = 0;
     @Override
@@ -16,8 +16,10 @@ public class Chi2Reducer extends Reducer<Text, DocIdFreq, Text, DocIdFreq> {
         this.documentCounter = conf.getLong("TOTAL_DOCUMENTCOUNT", -1);
     }
 
-    public void reduce(Text key, Iterable<DocIdFreq> values, Context context) throws IOException, InterruptedException {
-        System.out.println("CUSTOM IN R3");
+    public void reduce(Text key, Chi2DataMapperArray values, Context context) throws IOException, InterruptedException {
+        System.out.println("CUSTOM IN R3 " + key.toString());
+        // calc C
+        // calc D = N -(A+B+C)
     }
 
 }

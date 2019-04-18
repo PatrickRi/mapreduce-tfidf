@@ -4,12 +4,13 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
+
+    public static Pattern CAPTURE_WORDS = Pattern.compile("([\\p{L}0-9][\\p{L}0-9]*)", Pattern.UNICODE_CASE);
 
     /**
      * Stopwords
@@ -44,10 +45,8 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
         String docId = jsonObject.getString("asin");
 
         //1.1 - Tokenization to unigrams
-        StringTokenizer itr = new StringTokenizer(reviewText, "\\W+");
-        while (itr.hasMoreTokens()) {
-            //1.2 Casefolding
-            String token = itr.nextToken().toLowerCase();
+        for(String token : extractTokens(reviewText.toLowerCase())) {
+            // 1.2 lowercased
             //1.3 - Stopword-filtering
 //                if (!stopwords.contains(token)) {
             if (terms.containsKey(token)) {
@@ -63,5 +62,14 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
         for (Map.Entry<String, DocIdFreq> entry : terms.entrySet()) {
             context.write(new Text(entry.getKey()), entry.getValue());
         }
+    }
+
+    public static List<String> extractTokens(String lcLince) {
+        Matcher matcher = CAPTURE_WORDS.matcher(lcLince);
+        List<String> result = new ArrayList<>();
+        while (matcher.find()) {
+            result.add(matcher.group().replaceAll("[\\.,]+$", ""));
+        }
+        return result;
     }
 }

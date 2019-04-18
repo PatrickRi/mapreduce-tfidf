@@ -20,6 +20,11 @@ public  class Chi2DataMapper implements WritableComparable<Chi2DataMapper> {
         this.A = A;
         this.B = B;
     }
+    public Chi2DataMapper(Text term, long A, long B) {
+        this.term = new Text(term);
+        this.A = new LongWritable(A);
+        this.B = new LongWritable(B);
+    }
 
     @Override
     public int compareTo(Chi2DataMapper o) {
@@ -28,10 +33,6 @@ public  class Chi2DataMapper implements WritableComparable<Chi2DataMapper> {
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-//        dataOutput.writeBytes(this.docId.toString());
-//        dataOutput.writeLong(this.frequency.get());
-//        dataOutput.writeDouble((this.tfidf.get()));
-//        dataOutput.writeBytes(this.category.toString());
         this.term.write(dataOutput);
         this.A.write(dataOutput);
         this.B.write(dataOutput);
