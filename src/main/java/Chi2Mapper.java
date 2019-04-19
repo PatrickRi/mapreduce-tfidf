@@ -12,6 +12,8 @@ import java.util.Map;
 
 public class Chi2Mapper extends Mapper<Text, DocIdFreqArray, Text, Chi2DataMapperArray> {
 
+    public long documentCounter = 0;
+
     public class Chi2AB {
         public long A = 0l;
         public long B = 0l;
@@ -29,6 +31,12 @@ public class Chi2Mapper extends Mapper<Text, DocIdFreqArray, Text, Chi2DataMappe
         }
     }
 
+    @Override
+    protected void setup(Context context) throws IOException, InterruptedException {
+        super.setup(context);
+        Configuration conf = context.getConfiguration();
+        this.documentCounter = conf.getLong("TOTAL_DOCUMENTCOUNT", -1);
+    }
 
     public void map(Text term, DocIdFreqArray values, Context context) throws IOException, InterruptedException {
         System.out.println("CUSTOM IN M3A Key=" + term.toString() + ":::" + values.get().length);

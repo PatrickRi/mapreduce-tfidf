@@ -18,8 +18,9 @@ public class MrChain {
     }
 
     public static void main(String[] args) throws Exception{
-//        long docCount = countTotalDocuments(input, 7);
-//        return calculateTfIdf(input, 7, docCount);
+        //Job-Dependencies can be controlled:
+        //http://timepasstechies.com/job-chaining-mapreduce-jobcontrol-controlledjob-driver/
+
 // PHASE 1
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "MrCHAIN-COUNT-DOCUMENTS");
@@ -43,7 +44,6 @@ public class MrChain {
         job.setNumReduceTasks(2);
         job.setJarByClass(MrChain.class);
         job.setMapperClass(TokenizerMapper.class);
-//        job.setCombinerClass(IntSumReducer.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(DocIdFreq.class);
         job.setReducerClass(IntSumReducer.class);
@@ -65,17 +65,42 @@ public class MrChain {
         job.setInputFormatClass(SequenceFileInputFormat.class);
         job.setJarByClass(MrChain.class);
         job.setMapperClass(Chi2Mapper.class);
-//        job.setCombinerClass(Chi2Reducer.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Chi2DataMapperArray.class);
         job.setReducerClass(Chi2Reducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Chi2DataMapperArray.class);
+        job.setOutputValueClass(NullWritable.class);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
-        //FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileInputFormat.addInputPath(job, new Path(args[1]+"/2/part-r-00000"));
-        FileInputFormat.addInputPath(job, new Path(args[1]+"/2/part-r-00001"));
+        //https://stackoverflow.com/questions/20094366/hadoop-provide-directory-as-input-to-mapreduce-job
+//        FileInputFormat.addInputPath(job, new Path(args[1]+"/2/part-r-00000"));
+//        FileInputFormat.addInputPath(job, new Path(args[1]+"/2/part-r-00001"));
+        FileInputFormat.setInputDirRecursive(job, true);
+        FileInputFormat.addInputPath(job, new Path(args[1]+"/2"));
         FileOutputFormat.setOutputPath(job, new Path(args[1]+"/3"));
+        boolean phase3succeeded = job.waitForCompletion(true);
+        if (!phase3succeeded) {
+            throw new IllegalStateException("Job failed!");
+        }
+        //TODO merge lists
+        conf = new Configuration();
+        job = Job.getInstance(conf, "MrCHAIN-MERGE");
+        job.setNumReduceTasks(1);
+        job.setInputFormatClass(SequenceFileInputFormat.class);
+        job.setJarByClass(MrChain.class);
+        job.setMapperClass(MergeMapper.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
+        job.setReducerClass(MergeReducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(NullWritable.class);
+        //job.setOutputFormatClass(SequenceFileOutputFormat.class);
+        FileInputFormat.setInputDirRecursive(job, true);
+        FileInputFormat.addInputPath(job, new Path(args[1]+"/3"));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]+"/4"));
+        boolean phase4succeeded = job.waitForCompletion(true);
+        if (!phase4succeeded) {
+            throw new IllegalStateException("Job failed!");
+        }
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
     }
