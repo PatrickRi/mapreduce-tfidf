@@ -10,11 +10,11 @@ public class MergeReducer extends Reducer<Text, Text, NullWritable, Text> {
     @Override
     protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
         TreeSet<String> set = new TreeSet<>();
-        for(Text val : values) {
+        for (Text val : values) {
             set.add(val.toString());
         }
         StringBuilder sb = new StringBuilder();
-        for(String s : set) {
+        for (String s : set) {
             sb.append(s);
             sb.append(" ");
         }

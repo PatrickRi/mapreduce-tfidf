@@ -2,7 +2,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,8 +20,8 @@ public class Chi2Mapper extends Mapper<Text, DocIdFreqArray, Text, Chi2DataMappe
         public long D = 0l;
 
         public Chi2AB() {
-
         }
+
         public Chi2AB(long A, long B, long C, long D) {
             this.A = A;
             this.B = B;
@@ -63,12 +62,6 @@ public class Chi2Mapper extends Mapper<Text, DocIdFreqArray, Text, Chi2DataMappe
                 currentTerm.getValue().B = this.countDocumentsWithTermNotInCategory(categories, currentTerm.getKey(), category.getKey());
             }
         }
-        // C
-        for (Map.Entry<Text, HashMap<Text, Chi2AB>> category : categories.entrySet()) {
-            for (Map.Entry<Text, Chi2AB> currentTerm : category.getValue().entrySet()) {
-                long C = this.countDocumentsWithoutTermInCategory(category.getValue(), currentTerm.getKey());
-            }
-        }
         // D
         for (Map.Entry<Text, HashMap<Text, Chi2AB>> category : categories.entrySet()) {
             for (Map.Entry<Text, Chi2AB> currentTerm : category.getValue().entrySet()) {
@@ -76,17 +69,8 @@ public class Chi2Mapper extends Mapper<Text, DocIdFreqArray, Text, Chi2DataMappe
             }
         }
 
-        System.out.println("CUSTOM IN M3B");
-//        for (Map.Entry<Text, HashMap<Text, Chi2AB>> category: categories.entrySet()){
-//            StringBuffer terms = new StringBuffer();
-//            for (Text termString : category.getValue().keySet()) {
-//                terms.append(termString.toString());
-//                terms.append(",");
-//            }
-//            new DocIdFreqArray(resultSet.toArray(new DocIdFreq[resultSet.size()]))
-//      }
 
-        for (Map.Entry<Text, HashMap<Text, Chi2AB>> category: categories.entrySet()) {
+        for (Map.Entry<Text, HashMap<Text, Chi2AB>> category : categories.entrySet()) {
             ArrayList<Chi2DataMapper> resultList = new ArrayList<>();
             for (Text term1 : category.getValue().keySet()) {
                 resultList.add(new Chi2DataMapper(term1, category.getValue().get(term1).A, category.getValue().get(term1).B, category.getValue().get(term1).C, category.getValue().get(term1).D));
@@ -99,21 +83,12 @@ public class Chi2Mapper extends Mapper<Text, DocIdFreqArray, Text, Chi2DataMappe
 
     private long countDocumentsWithTermNotInCategory(HashMap<Text, HashMap<Text, Chi2AB>> categories, Text term, Text category) {
         long count = 0;
-        for ( Text categoryKey: categories.keySet()) {
+        for (Text categoryKey : categories.keySet()) {
             if (!category.toString().equals(categories.toString())) { // all categories except current
                 HashMap<Text, Chi2AB> categoryData = categories.get(categoryKey);
                 if (categoryData.containsKey(term)) { // find term
                     count += categoryData.get(term).A; // number of documents containing t but not in c
                 }
-            }
-        }
-        return count;
-    }
-    private long countDocumentsWithoutTermInCategory(HashMap<Text, Chi2AB> terms, Text term) {
-        long count = 0l;
-        for (Map.Entry<Text, Chi2AB> current : terms.entrySet()) {
-            if (!current.getKey().toString().equals(term.toString())) {
-                count += current.getValue().A;
             }
         }
         return count;

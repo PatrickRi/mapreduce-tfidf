@@ -1,4 +1,3 @@
-import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
@@ -7,7 +6,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public  class Chi2DataMapper implements WritableComparable<Chi2DataMapper> {
+public class Chi2DataMapper implements WritableComparable<Chi2DataMapper> {
     public Text term = new Text("");
     public LongWritable A = new LongWritable(0);
     public LongWritable B = new LongWritable(0);
@@ -17,6 +16,7 @@ public  class Chi2DataMapper implements WritableComparable<Chi2DataMapper> {
     public Chi2DataMapper() {
 
     }
+
     public Chi2DataMapper(Text term, LongWritable A, LongWritable B) {
         this.term = term;
         this.A = A;
@@ -24,6 +24,7 @@ public  class Chi2DataMapper implements WritableComparable<Chi2DataMapper> {
         this.C = C;
         this.D = D;
     }
+
     public Chi2DataMapper(Text term, long A, long B, long C, long D) {
         this.term = new Text(term);
         this.A = new LongWritable(A);

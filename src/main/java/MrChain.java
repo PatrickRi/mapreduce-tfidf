@@ -11,8 +11,6 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import java.util.HashSet;
-
 public class MrChain {
 
 
@@ -20,7 +18,7 @@ public class MrChain {
         TOTAL_DOCUMENTS
     }
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         //Job-Dependencies can be controlled:
         //http://timepasstechies.com/job-chaining-mapreduce-jobcontrol-controlledjob-driver/
 
@@ -33,7 +31,7 @@ public class MrChain {
         job.setMapOutputValueClass(NullWritable.class);
         job.setMapperClass(DocumentCountMapper.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]+"/1"));
+        FileOutputFormat.setOutputPath(job, new Path(args[1] + "/1"));
 
         boolean succeeded = job.waitForCompletion(true);
         if (!succeeded) {
@@ -54,7 +52,7 @@ public class MrChain {
         job.setOutputValueClass(DocIdFreqArray.class);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]+"/2"));
+        FileOutputFormat.setOutputPath(job, new Path(args[1] + "/2"));
 
         boolean phase2succeeded = job.waitForCompletion(true);
         if (!phase2succeeded) {
@@ -78,8 +76,8 @@ public class MrChain {
 //        FileInputFormat.addInputPath(job, new Path(args[1]+"/2/part-r-00000"));
 //        FileInputFormat.addInputPath(job, new Path(args[1]+"/2/part-r-00001"));
         FileInputFormat.setInputDirRecursive(job, true);
-        FileInputFormat.addInputPath(job, new Path(args[1]+"/2"));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]+"/3"));
+        FileInputFormat.addInputPath(job, new Path(args[1] + "/2"));
+        FileOutputFormat.setOutputPath(job, new Path(args[1] + "/3"));
         boolean phase3succeeded = job.waitForCompletion(true);
         if (!phase3succeeded) {
             throw new IllegalStateException("Job failed!");
@@ -97,8 +95,8 @@ public class MrChain {
         job.setOutputValueClass(Text.class);
         job.setOutputFormatClass(TextOutputFormat.class);
         FileInputFormat.setInputDirRecursive(job, true);
-        FileInputFormat.addInputPath(job, new Path(args[1]+"/3"));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]+"/4"));
+        FileInputFormat.addInputPath(job, new Path(args[1] + "/3"));
+        FileOutputFormat.setOutputPath(job, new Path(args[1] + "/4"));
         boolean phase4succeeded = job.waitForCompletion(true);
         if (!phase4succeeded) {
             throw new IllegalStateException("Job failed!");
@@ -111,9 +109,9 @@ public class MrChain {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         FileInputFormat.setInputDirRecursive(job, true);
-        MultipleInputs.addInputPath(job, new Path(args[1]+"/2"), SequenceFileInputFormat.class, TfIdfMergeMapper.class);
-        MultipleInputs.addInputPath(job, new Path(args[1]+"/4"), TextInputFormat.class, MergedListMapper.class);
-        FileOutputFormat.setOutputPath(job, new Path(args[1]+"/5"));
+        MultipleInputs.addInputPath(job, new Path(args[1] + "/2"), SequenceFileInputFormat.class, TfIdfMergeMapper.class);
+        MultipleInputs.addInputPath(job, new Path(args[1] + "/4"), TextInputFormat.class, MergedListMapper.class);
+        FileOutputFormat.setOutputPath(job, new Path(args[1] + "/5"));
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 

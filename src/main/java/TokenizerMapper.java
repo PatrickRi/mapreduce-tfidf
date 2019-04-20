@@ -4,7 +4,10 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,19 +18,18 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
     /**
      * Stopwords
      * hdfs:///user/elmar/amazon-reviews/full/complete/reviewscombined.json
-     *
+     * <p>
      * {"reviewerID": "A2ZFFXGLJUHD76", "asin": "B00LYPUPZK", "reviewerName": "Dan Bernstein",
      * "helpful": [0, 0], "reviewText": "Fake!", "overall": 1.0, "summary": "One Star",
      * "unixReviewTime": 1405900800, "reviewTime": "07 21, 2014", "category": "Health_and_Personal_Care"}
-     *
-     *  TF_B = f(d,f)
-     *  IDF_B2 = ln (N  / ft)
-     *  f_d,f ... Number of occurences of term t in d
-     *  N ... Number of documents
-     *  ft ... number of documents containing term t
-     *
-     *  result: Term, <DocId, Frequency>
-     *
+     * <p>
+     * TF_B = f(d,f)
+     * IDF_B2 = ln (N  / ft)
+     * f_d,f ... Number of occurences of term t in d
+     * N ... Number of documents
+     * ft ... number of documents containing term t
+     * <p>
+     * result: Term, <DocId, Frequency>
      *
      * @param key
      * @param value
@@ -46,7 +48,7 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
         String docId = jsonObject.getString("asin");
 
         //1.1 - Tokenization to unigrams
-        for(String token : extractTokens(reviewText.toLowerCase())) {
+        for (String token : extractTokens(reviewText.toLowerCase())) {
             // 1.2 lowercased
             //1.3 - Stopword-filtering
 //                if (!stopwords.contains(token)) {

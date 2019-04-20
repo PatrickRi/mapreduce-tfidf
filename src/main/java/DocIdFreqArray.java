@@ -1,6 +1,6 @@
 import org.apache.hadoop.io.ArrayWritable;
 
-public  class DocIdFreqArray extends ArrayWritable {
+public class DocIdFreqArray extends ArrayWritable {
     public DocIdFreqArray() {
         super(DocIdFreq.class);
     }
@@ -12,7 +12,7 @@ public  class DocIdFreqArray extends ArrayWritable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for(String s : toStrings()) {
+        for (String s : toStrings()) {
             sb.append(s);
         }
         return sb.toString();

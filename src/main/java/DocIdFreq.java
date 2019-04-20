@@ -7,15 +7,17 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public  class DocIdFreq implements WritableComparable<DocIdFreq> {
+public class DocIdFreq implements WritableComparable<DocIdFreq> {
     public DocIdFreq() {
 
     }
+
     public DocIdFreq(Text docId, LongWritable frequency, Text category) {
         this.docId = docId;
         this.frequency = frequency;
         this.category = category;
     }
+
     public Text docId = new Text("");
     public LongWritable frequency = new LongWritable(0);
     public DoubleWritable tfidf = new DoubleWritable(0d);
