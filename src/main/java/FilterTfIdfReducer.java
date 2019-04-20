@@ -22,7 +22,7 @@ public class FilterTfIdfReducer extends Reducer<Text, Text, Text, Text> {
                     context.write(key, val);
                 }
             }
-            throw new RuntimeException("PAYLOAD: KEY: " + key.toString() + "; SIZE: " + list.size() + "; PAYLOAD: " + payload);
+            //throw new RuntimeException("PAYLOAD: KEY: " + key.toString() + "; SIZE: " + list.size() + "; PAYLOAD: " + payload);
         }
     }
 }

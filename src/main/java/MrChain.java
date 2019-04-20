@@ -52,7 +52,7 @@ public class MrChain {
         job.setReducerClass(IntSumReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(DocIdFreqArray.class);
-        //job.setOutputFormatClass(SequenceFileOutputFormat.class);
+        job.setOutputFormatClass(SequenceFileOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]+"/2"));
 
