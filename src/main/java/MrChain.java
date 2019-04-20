@@ -82,6 +82,7 @@ public class MrChain {
         if (!phase3succeeded) {
             throw new IllegalStateException("Job failed!");
         }
+// PHASE 4
         conf = new Configuration();
         job = Job.getInstance(conf, "MrCHAIN-MERGE");
         job.setNumReduceTasks(1);
@@ -101,6 +102,7 @@ public class MrChain {
         if (!phase4succeeded) {
             throw new IllegalStateException("Job failed!");
         }
+// PHASE 5
         conf = new Configuration();
         job = Job.getInstance(conf, "MrCHAIN-FILTER-TFIDF");
         job.setNumReduceTasks(1);
