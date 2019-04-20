@@ -4,7 +4,9 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -50,7 +52,7 @@ public class MrChain {
         job.setReducerClass(IntSumReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(DocIdFreqArray.class);
-        job.setOutputFormatClass(SequenceFileOutputFormat.class);
+        //job.setOutputFormatClass(SequenceFileOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]+"/2"));
 
@@ -70,7 +72,7 @@ public class MrChain {
         job.setMapOutputValueClass(Chi2DataMapperArray.class);
         job.setReducerClass(Chi2Reducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(NullWritable.class);
+        job.setOutputValueClass(Text.class);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
         //https://stackoverflow.com/questions/20094366/hadoop-provide-directory-as-input-to-mapreduce-job
 //        FileInputFormat.addInputPath(job, new Path(args[1]+"/2/part-r-00000"));
@@ -82,7 +84,6 @@ public class MrChain {
         if (!phase3succeeded) {
             throw new IllegalStateException("Job failed!");
         }
-        //TODO merge lists
         conf = new Configuration();
         job = Job.getInstance(conf, "MrCHAIN-MERGE");
         job.setNumReduceTasks(1);
@@ -102,6 +103,18 @@ public class MrChain {
         if (!phase4succeeded) {
             throw new IllegalStateException("Job failed!");
         }
+        conf = new Configuration();
+        job = Job.getInstance(conf, "MrCHAIN-FILTER-TFIDF");
+        job.setNumReduceTasks(1);
+        job.setJarByClass(MrChain.class);
+        job.setReducerClass(FilterTfIdfReducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+        FileInputFormat.setInputDirRecursive(job, true);
+        MultipleInputs.addInputPath(job, new Path(args[1]+"/2"), SequenceFileInputFormat.class, TfIdfMergeMapper.class);
+        MultipleInputs.addInputPath(job, new Path(args[1]+"/4"), TextInputFormat.class, MergedListMapper.class);
+        FileOutputFormat.setOutputPath(job, new Path(args[1]+"/5"));
+
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
     }

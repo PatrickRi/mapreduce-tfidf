@@ -1,8 +1,4 @@
-import org.apache.hadoop.io.*;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
+import org.apache.hadoop.io.ArrayWritable;
 
 public  class DocIdFreqArray extends ArrayWritable {
     public DocIdFreqArray() {
@@ -13,16 +9,12 @@ public  class DocIdFreqArray extends ArrayWritable {
         super(DocIdFreq.class, values);
     }
 
-//    @Override
-//    public DocIdFreq[] get() {
-////        if (true)
-////            throw new RuntimeException((super.get().toString() + "###" + super.get().getClass().toString()));
-//        return super.get();
-//    }
-
-//    @Override
-//    public String toString() {
-//        DocIdFreq[] values = get();
-//        return values[0].docId.toString() + ", " + values[0].frequency.toString() + ", " + values[0].tfidf.toString() + ", " + values[0].category.toString();
-//    }
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for(String s : toStrings()) {
+            sb.append(s);
+        }
+        return sb.toString();
+    }
 }

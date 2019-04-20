@@ -42,6 +42,7 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
         JSONObject jsonObject = new JSONObject(value.toString());
         String reviewText = jsonObject.getString("reviewText");
         String category = jsonObject.getString("category");
+        //TODO THIS IS NOT UNIQUE! (e.g. 6304429150)
         String docId = jsonObject.getString("asin");
 
         //1.1 - Tokenization to unigrams
@@ -56,7 +57,6 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
             }
 //                }
         }
-
 
         // add terms to map
         for (Map.Entry<String, DocIdFreq> entry : terms.entrySet()) {
