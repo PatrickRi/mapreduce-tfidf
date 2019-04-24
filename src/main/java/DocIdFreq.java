@@ -7,6 +7,9 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+/**
+ * Encapsulates state about the origin (documentId, category of the document) and frequency of a term.
+ */
 public class DocIdFreq implements WritableComparable<DocIdFreq> {
     public DocIdFreq() {
 
@@ -30,10 +33,6 @@ public class DocIdFreq implements WritableComparable<DocIdFreq> {
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-//        dataOutput.writeBytes(this.docId.toString());
-//        dataOutput.writeLong(this.frequency.get());
-//        dataOutput.writeDouble((this.tfidf.get()));
-//        dataOutput.writeBytes(this.category.toString());
         this.docId.write(dataOutput);
         this.frequency.write(dataOutput);
         this.tfidf.write(dataOutput);

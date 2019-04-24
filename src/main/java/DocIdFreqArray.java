@@ -1,5 +1,8 @@
 import org.apache.hadoop.io.ArrayWritable;
 
+/**
+ * Array of {@link DocIdFreq} objects
+ */
 public class DocIdFreqArray extends ArrayWritable {
     public DocIdFreqArray() {
         super(DocIdFreq.class);

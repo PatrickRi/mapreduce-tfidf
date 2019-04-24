@@ -6,18 +6,18 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class Chi2DataMapper implements WritableComparable<Chi2DataMapper> {
+public class Chi2Data implements WritableComparable<Chi2Data> {
     public Text term = new Text("");
     public LongWritable A = new LongWritable(0);
     public LongWritable B = new LongWritable(0);
     public LongWritable C = new LongWritable(0);
     public LongWritable D = new LongWritable(0);
 
-    public Chi2DataMapper() {
+    public Chi2Data() {
 
     }
 
-    public Chi2DataMapper(Text term, LongWritable A, LongWritable B) {
+    public Chi2Data(Text term, LongWritable A, LongWritable B) {
         this.term = term;
         this.A = A;
         this.B = B;
@@ -25,7 +25,7 @@ public class Chi2DataMapper implements WritableComparable<Chi2DataMapper> {
         this.D = D;
     }
 
-    public Chi2DataMapper(Text term, long A, long B, long C, long D) {
+    public Chi2Data(Text term, long A, long B, long C, long D) {
         this.term = new Text(term);
         this.A = new LongWritable(A);
         this.B = new LongWritable(B);
@@ -34,7 +34,7 @@ public class Chi2DataMapper implements WritableComparable<Chi2DataMapper> {
     }
 
     @Override
-    public int compareTo(Chi2DataMapper o) {
+    public int compareTo(Chi2Data o) {
         return o.term.compareTo(this.term);
     }
 
