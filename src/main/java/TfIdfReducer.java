@@ -6,10 +6,24 @@ import org.apache.hadoop.mapreduce.Reducer;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class IntSumReducer extends Reducer<Text, DocIdFreq, Text, DocIdFreqArray> {
+/**
+ * Splits the reviewText field of JSON documents into single tokens, and additionally extracts the category for later.
+ * KEYIN: Text - extracted token/term
+ * VALUEIN: DocIdFreq, encapsulating documentId, frequency of the term, and the document category
+ * KEYOUT: Text - token/term
+ * VALUEOUT: DocIdFreqArray, list of all DocIdFreq objects belonging to the term (one per document for the respective term)
+ */
+public class TfIdfReducer extends Reducer<Text, DocIdFreq, Text, DocIdFreqArray> {
 
     public long documentCounter = 0;
 
+    /**
+     * inject counter TOTAL_DOCUMENTCOUNT into job
+     *
+     * @param context context
+     * @throws IOException          ex
+     * @throws InterruptedException ex
+     */
     @Override
     public void setup(Context context) throws IOException, InterruptedException {
         super.setup(context);
@@ -17,16 +31,14 @@ public class IntSumReducer extends Reducer<Text, DocIdFreq, Text, DocIdFreqArray
         this.documentCounter = conf.getLong("TOTAL_DOCUMENTCOUNT", -1);
     }
 
+    /**
+     * @param term    the term
+     * @param values  all DocIdFreq objects belonging to the term
+     * @param context context
+     * @throws IOException          ex
+     * @throws InterruptedException ex
+     */
     public void reduce(Text term, Iterable<DocIdFreq> values, Context context) throws IOException, InterruptedException {
-        System.out.println("CUSTOM IN R2 term=" + term.toString());
-//            log.warning("ERR Counter=" + documentCounter);
-
-        //TF_B= r(dt)=f(dt)
-        //IDF_B2 = loge (N/ft)
-        //TF_B * IDF_B2
-        // fdt = number of term t in document d
-        // N = number of documents
-        // ft = number of documents with term t
         ArrayList<DocIdFreq> resultSet = new ArrayList<>();
         int f_t = 0;
         // count number of documents and repack in new HashSet because cannot use iterable twice
@@ -34,16 +46,10 @@ public class IntSumReducer extends Reducer<Text, DocIdFreq, Text, DocIdFreqArray
             f_t++;
             resultSet.add(val);
         }
-//        System.out.println("OUT Counter=" + this.documentCounter);
-//        if (true)
-//            throw new RuntimeException("Counter=" + documentCounter);
         for (DocIdFreq val : resultSet) {
             double TF_B = val.frequency.get();
             double IDF_B2 = Math.log(this.documentCounter / f_t);
             val.tfidf = new DoubleWritable(TF_B * IDF_B2);
-            // throw new RuntimeException("Reducer Exception " + key.toString());
-//            resultArray[i] = val;
-            System.out.println("CUSTOM IN R2 value=" + val.toString());
         }
         context.write(term, new DocIdFreqArray(resultSet.toArray(new DocIdFreq[resultSet.size()])));
     }

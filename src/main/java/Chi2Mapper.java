@@ -1,4 +1,3 @@
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -8,86 +7,72 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Groups the DocIdFreqArrays by category, for calculating the chiSquare for categories.
+ * KEYIN: Text - token/term
+ * VALUEIN: DocIdFreqArray - all DocIdFreq objects belonging to the term
+ * KEYOUT: category
+ * VALUEOUT: Chi2DataArray, list of Chi2Data objects
+ */
+public class Chi2Mapper extends Mapper<Text, DocIdFreqArray, Text, Chi2DataArray> {
 
-public class Chi2Mapper extends Mapper<Text, DocIdFreqArray, Text, Chi2DataMapperArray> {
-
-    public long documentCounter = 0;
-
-    public class Chi2AB {
-        public long A = 0l;
-        public long B = 0l;
-        public long C = 0l;
-        public long D = 0l;
-
-        public Chi2AB() {
-        }
-
-        public Chi2AB(long A, long B, long C, long D) {
-            this.A = A;
-            this.B = B;
-            this.C = C;
-            this.D = D;
-        }
-    }
-
+    /**
+     * As the formula for chi2 states 4(5) parameters, A, B, C, D we calculate whats possible at this point of time.
+     *
+     * @param term    term
+     * @param values  DocIdFreqArray
+     * @param context context
+     * @throws IOException          ex
+     * @throws InterruptedException ex
+     */
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
-        super.setup(context);
-        Configuration conf = context.getConfiguration();
-        this.documentCounter = conf.getLong("TOTAL_DOCUMENTCOUNT", -1);
-    }
-
     public void map(Text term, DocIdFreqArray values, Context context) throws IOException, InterruptedException {
-        System.out.println("CUSTOM IN M3A Key=" + term.toString() + ":::" + values.get().length);
         // A
-        HashMap<Text, HashMap<Text, Chi2AB>> categories = new HashMap<>();
+        HashMap<Text, HashMap<Text, Chi2Data>> categories = new HashMap<>();
         for (Writable val : values.get()) {
             DocIdFreq docIdFreq = (DocIdFreq) val;
             if (categories.containsKey(docIdFreq.category)) {
-                HashMap<Text, Chi2AB> categoryData = categories.get(docIdFreq.category);
+                HashMap<Text, Chi2Data> categoryData = categories.get(docIdFreq.category);
                 if (categoryData.containsKey(term)) {
-                    categoryData.get(term).A++; // number of documents containing t in c
+                    categoryData.get(term).A.set(categoryData.get(term).A.get() + 1);// number of documents containing t in c
                 } else {
-                    categoryData.put(term, new Chi2AB(1l, 0l, 0l, 0l));
+                    categoryData.put(term, new Chi2Data(term, 1L, 0L, 0L, 0L));
                 }
             } else {
-                HashMap<Text, Chi2AB> terms = new HashMap<>();
-                terms.put(term, new Chi2AB(1, 0, 0l, 0l));
+                HashMap<Text, Chi2Data> terms = new HashMap<>();
+                terms.put(term, new Chi2Data(term, 1, 0, 0L, 0L));
                 categories.put(docIdFreq.category, terms);
             }
         }
         // B
-        for (Map.Entry<Text, HashMap<Text, Chi2AB>> category : categories.entrySet()) {
-            for (Map.Entry<Text, Chi2AB> currentTerm : category.getValue().entrySet()) {
-                currentTerm.getValue().B = this.countDocumentsWithTermNotInCategory(categories, currentTerm.getKey(), category.getKey());
+        for (Map.Entry<Text, HashMap<Text, Chi2Data>> category : categories.entrySet()) {
+            for (Map.Entry<Text, Chi2Data> currentTerm : category.getValue().entrySet()) {
+                currentTerm.getValue().B.set(this.countDocumentsWithTermNotInCategory(categories, currentTerm.getKey(), category.getKey()));
             }
         }
         // D
-        for (Map.Entry<Text, HashMap<Text, Chi2AB>> category : categories.entrySet()) {
-            for (Map.Entry<Text, Chi2AB> currentTerm : category.getValue().entrySet()) {
-                currentTerm.getValue().D = (currentTerm.getValue().A + currentTerm.getValue().B + currentTerm.getValue().C);
+        for (Map.Entry<Text, HashMap<Text, Chi2Data>> category : categories.entrySet()) {
+            for (Map.Entry<Text, Chi2Data> currentTerm : category.getValue().entrySet()) {
+                currentTerm.getValue().D.set(currentTerm.getValue().A.get() + currentTerm.getValue().B.get() + currentTerm.getValue().C.get());
             }
         }
 
-
-        for (Map.Entry<Text, HashMap<Text, Chi2AB>> category : categories.entrySet()) {
-            ArrayList<Chi2DataMapper> resultList = new ArrayList<>();
+        for (Map.Entry<Text, HashMap<Text, Chi2Data>> category : categories.entrySet()) {
+            ArrayList<Chi2Data> resultList = new ArrayList<>();
             for (Text term1 : category.getValue().keySet()) {
-                resultList.add(new Chi2DataMapper(term1, category.getValue().get(term1).A, category.getValue().get(term1).B, category.getValue().get(term1).C, category.getValue().get(term1).D));
+                resultList.add(category.getValue().get(term1));
             }
-            System.out.println("CUSTOM IN M3C" + category.getKey().toString() + ":::" + resultList.size());
-            context.write(category.getKey(), new Chi2DataMapperArray(resultList.toArray(new Chi2DataMapper[resultList.size()])));
+            context.write(category.getKey(), new Chi2DataArray(resultList.toArray(new Chi2Data[0])));
         }
-        System.out.println("CUSTOM IN M3D");
     }
 
-    private long countDocumentsWithTermNotInCategory(HashMap<Text, HashMap<Text, Chi2AB>> categories, Text term, Text category) {
+    private long countDocumentsWithTermNotInCategory(HashMap<Text, HashMap<Text, Chi2Data>> categories, Text term, Text category) {
         long count = 0;
         for (Text categoryKey : categories.keySet()) {
             if (!category.toString().equals(categories.toString())) { // all categories except current
-                HashMap<Text, Chi2AB> categoryData = categories.get(categoryKey);
+                HashMap<Text, Chi2Data> categoryData = categories.get(categoryKey);
                 if (categoryData.containsKey(term)) { // find term
-                    count += categoryData.get(term).A; // number of documents containing t but not in c
+                    count += categoryData.get(term).A.get(); // number of documents containing t but not in c
                 }
             }
         }

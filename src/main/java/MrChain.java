@@ -11,18 +11,20 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
+/**
+ * Central Job orchestration
+ */
 public class MrChain {
 
-
+    /**
+     * MapReduce Counter for the total number of documents
+     */
     public enum Count {
         TOTAL_DOCUMENTS
     }
 
     public static void main(String[] args) throws Exception {
-        //Job-Dependencies can be controlled:
-        //http://timepasstechies.com/job-chaining-mapreduce-jobcontrol-controlledjob-driver/
-
-// PHASE 1
+        // PHASE 1 - count all documents for later
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "MrCHAIN-COUNT-DOCUMENTS");
         job.setNumReduceTasks(2);
@@ -32,13 +34,13 @@ public class MrChain {
         job.setMapperClass(DocumentCountMapper.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1] + "/1"));
-
         boolean succeeded = job.waitForCompletion(true);
         if (!succeeded) {
             throw new IllegalStateException("Job failed!");
         }
         long count = job.getCounters().findCounter(Count.TOTAL_DOCUMENTS).getValue();
-// PHASE 2
+
+        // PHASE 2 - calculate TFIDF for terms and documents
         conf = new Configuration();
         conf.set("TOTAL_DOCUMENTCOUNT", Long.toString(count)); // inject counter value into job
         job = Job.getInstance(conf, "MrCHAIN-TFIDF");
@@ -47,18 +49,18 @@ public class MrChain {
         job.setMapperClass(TokenizerMapper.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(DocIdFreq.class);
-        job.setReducerClass(IntSumReducer.class);
+        job.setReducerClass(TfIdfReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(DocIdFreqArray.class);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1] + "/2"));
-
         boolean phase2succeeded = job.waitForCompletion(true);
         if (!phase2succeeded) {
             throw new IllegalStateException("Job failed!");
         }
-// PHASE 3
+
+        // PHASE 3
         conf = new Configuration();
         conf.set("TOTAL_DOCUMENTCOUNT", Long.toString(count)); // inject counter value into job
         job = Job.getInstance(conf, "MrCHAIN-CHI2");
@@ -67,14 +69,11 @@ public class MrChain {
         job.setJarByClass(MrChain.class);
         job.setMapperClass(Chi2Mapper.class);
         job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(Chi2DataMapperArray.class);
+        job.setMapOutputValueClass(Chi2DataArray.class);
         job.setReducerClass(Chi2Reducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
-        //https://stackoverflow.com/questions/20094366/hadoop-provide-directory-as-input-to-mapreduce-job
-//        FileInputFormat.addInputPath(job, new Path(args[1]+"/2/part-r-00000"));
-//        FileInputFormat.addInputPath(job, new Path(args[1]+"/2/part-r-00001"));
         FileInputFormat.setInputDirRecursive(job, true);
         FileInputFormat.addInputPath(job, new Path(args[1] + "/2"));
         FileOutputFormat.setOutputPath(job, new Path(args[1] + "/3"));
@@ -82,7 +81,8 @@ public class MrChain {
         if (!phase3succeeded) {
             throw new IllegalStateException("Job failed!");
         }
-// PHASE 4
+
+        // PHASE 4
         conf = new Configuration();
         job = Job.getInstance(conf, "MrCHAIN-MERGE");
         job.setNumReduceTasks(1);
@@ -102,7 +102,8 @@ public class MrChain {
         if (!phase4succeeded) {
             throw new IllegalStateException("Job failed!");
         }
-// PHASE 5
+
+        // PHASE 5
         conf = new Configuration();
         job = Job.getInstance(conf, "MrCHAIN-FILTER-TFIDF");
         job.setNumReduceTasks(1);
@@ -116,6 +117,5 @@ public class MrChain {
         FileOutputFormat.setOutputPath(job, new Path(args[1] + "/5"));
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
-
     }
 }
