@@ -51,7 +51,14 @@ public class TfIdfReducer extends Reducer<Text, DocIdFreq, Text, DocIdFreqArray>
             double IDF_B2 = Math.log(this.documentCounter / f_t);
             val.tfidf = new DoubleWritable(TF_B * IDF_B2);
         }
-        context.write(term, new DocIdFreqArray(resultSet.toArray(new DocIdFreq[resultSet.size()])));
+        //Filter tfidf for > 0, as requested by the assignment description (weight_{i,j,n}>0)
+        ArrayList<DocIdFreq> filteredResultSet = new ArrayList<>();
+        for (DocIdFreq val : resultSet) {
+            if(val.tfidf.get() > 0.0) {
+                filteredResultSet.add(val);
+            }
+        }
+        context.write(term, new DocIdFreqArray(filteredResultSet.toArray(new DocIdFreq[filteredResultSet.size()])));
     }
 
 }

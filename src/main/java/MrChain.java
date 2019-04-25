@@ -108,10 +108,45 @@ public class MrChain {
         job.setReducerClass(FilterTfIdfReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(DocIdFreqArray.class);
+        job.setOutputFormatClass(SequenceFileOutputFormat.class);
         FileInputFormat.setInputDirRecursive(job, true);
         MultipleInputs.addInputPath(job, new Path(args[1] + "/2"), SequenceFileInputFormat.class, TfIdfMergeMapper.class);
         MultipleInputs.addInputPath(job, new Path(args[1] + "/4"), TextInputFormat.class, MergedListMapper.class);
         FileOutputFormat.setOutputPath(job, new Path(args[1] + "/5"));
+        boolean phase5succeeded = job.waitForCompletion(true);
+        if (!phase5succeeded) {
+            throw new IllegalStateException("Job failed!");
+        }
+
+        // PHASE 6
+        conf = new Configuration();
+        job = Job.getInstance(conf, "MrCHAIN-OUTPUT1");
+        job.setInputFormatClass(SequenceFileInputFormat.class);
+        job.setJarByClass(MrChain.class);
+        job.setMapperClass(Output1Mapper.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Output1Data.class);
+        job.setReducerClass(Output1Reducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(NullWritable.class);
+        FileInputFormat.setInputDirRecursive(job, true);
+        FileInputFormat.addInputPath(job, new Path(args[1] + "/2"));
+        FileOutputFormat.setOutputPath(job, new Path(args[1] + "/6"));
+
+        // PHASE 7
+        conf = new Configuration();
+        job = Job.getInstance(conf, "MrCHAIN-OUTPUT2");
+        job.setInputFormatClass(SequenceFileInputFormat.class);
+        job.setJarByClass(MrChain.class);
+        job.setMapperClass(Output1Mapper.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Output1Data.class);
+        job.setReducerClass(Output1Reducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(NullWritable.class);
+        FileInputFormat.setInputDirRecursive(job, true);
+        FileInputFormat.addInputPath(job, new Path(args[1] + "/5"));
+        FileOutputFormat.setOutputPath(job, new Path(args[1] + "/7"));
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
