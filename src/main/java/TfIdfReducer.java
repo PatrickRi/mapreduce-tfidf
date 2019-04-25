@@ -44,7 +44,7 @@ public class TfIdfReducer extends Reducer<Text, DocIdFreq, Text, DocIdFreqArray>
         // count number of documents and repack in new HashSet because cannot use iterable twice
         for (DocIdFreq val : values) {
             f_t++;
-            resultSet.add(val);
+            resultSet.add(new DocIdFreq(val));
         }
         for (DocIdFreq val : resultSet) {
             double TF_B = val.frequency.get();

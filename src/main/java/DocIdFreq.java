@@ -6,6 +6,7 @@ import org.apache.hadoop.io.WritableComparable;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Encapsulates state about the origin (documentId, category of the document) and frequency of a term.
@@ -15,16 +16,24 @@ public class DocIdFreq implements WritableComparable<DocIdFreq> {
 
     }
 
+    public DocIdFreq(DocIdFreq o) {
+        this.docId.set(o.docId);
+        this.frequency.set(o.frequency.get());
+        this.tfidf.set(o.tfidf.get());
+        this.category.set(o.category);
+    }
+
     public DocIdFreq(Text docId, LongWritable frequency, Text category) {
         this.docId = docId;
         this.frequency = frequency;
         this.category = category;
+
     }
 
-    public Text docId = new Text("");
+    public Text docId = new Text("EMPTY");
     public LongWritable frequency = new LongWritable(0);
     public DoubleWritable tfidf = new DoubleWritable(0d);
-    public Text category = new Text("");
+    public Text category = new Text("EMPTY");
 
     @Override
     public int compareTo(DocIdFreq o) {
@@ -56,5 +65,25 @@ public class DocIdFreq implements WritableComparable<DocIdFreq> {
         result.append(", category=").append(this.category.toString());
         result.append("}");
         return result.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DocIdFreq docIdFreq = (DocIdFreq) o;
+        return Objects.equals(docId, docIdFreq.docId) &&
+                Objects.equals(frequency, docIdFreq.frequency) &&
+                Objects.equals(tfidf, docIdFreq.tfidf) &&
+                Objects.equals(category, docIdFreq.category);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(docId, frequency, tfidf, category);
     }
 }

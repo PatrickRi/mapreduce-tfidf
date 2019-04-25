@@ -8,11 +8,12 @@ import java.io.IOException;
  * KEYIN: Object - index
  * VALUEIN: Text - term
  * KEYOUT: Text - term
- * VALUEOUT: Text - NaN - indicating its origin from the merged chi2 list
+ * VALUEOUT: DocIdFreqArray - empty - indicating its origin from the merged chi2 list
  */
-public class MergedListMapper extends Mapper<Object, Text, Text, Text> {
+public class MergedListMapper extends Mapper<Object, Text, Text, DocIdFreqArray> {
 
-    private Text nan = new Text();
+    private DocIdFreqArray empty = new DocIdFreqArray(new DocIdFreq[0]);
+    private Text outputKey = new Text();
 
     /**
      * @param key     index
@@ -23,6 +24,10 @@ public class MergedListMapper extends Mapper<Object, Text, Text, Text> {
      */
     @Override
     protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-        context.write(value, nan);
+        for(String s : value.toString().split(" ")) {
+            outputKey.set(s);
+            context.write(outputKey, empty);
+        }
+
     }
 }

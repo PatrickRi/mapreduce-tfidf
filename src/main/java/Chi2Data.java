@@ -17,6 +17,14 @@ public class Chi2Data implements WritableComparable<Chi2Data> {
 
     }
 
+    public Chi2Data(Chi2Data o) {
+        this.term.set(o.term);
+        this.A.set(o.A.get());
+        this.B.set(o.B.get());
+        this.C.set(o.C.get());
+        this.D.set(o.D.get());
+    }
+
     public Chi2Data(Text term, LongWritable A, LongWritable B) {
         this.term = term;
         this.A = A;

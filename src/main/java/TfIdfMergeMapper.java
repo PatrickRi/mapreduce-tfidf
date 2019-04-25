@@ -1,19 +1,16 @@
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.IOException;
 
 /**
- * Forwards the read TfIdf values and terms from part 1 to the reducer, for it to merge.
+ * Forwards the TfIdf values and terms from part 1 to the reducer, for it to merge.
  * KEYIN: Text - term
  * VALUEIN: DocIdFreqArray - all DocIdFreq objects belonging to the term
  * KEYOUT: Text - term
- * VALUEOUT: Text - tfidf score
+ * VALUEOUT: DocIdFreqArray - array
  */
-public class TfIdfMergeMapper extends Mapper<Text, DocIdFreqArray, Text, Text> {
-
-    private Text outputValue = new Text();
+public class TfIdfMergeMapper extends Mapper<Text, DocIdFreqArray, Text, DocIdFreqArray> {
 
     /**
      * @param key     term
@@ -24,9 +21,6 @@ public class TfIdfMergeMapper extends Mapper<Text, DocIdFreqArray, Text, Text> {
      */
     @Override
     protected void map(Text key, DocIdFreqArray value, Context context) throws IOException, InterruptedException {
-        for (Writable v : value.get()) {
-            outputValue.set(((DocIdFreq) v).tfidf.toString());
-            context.write(key, outputValue);
-        }
+        context.write(key, value);
     }
 }

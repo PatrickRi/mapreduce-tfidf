@@ -24,10 +24,6 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
     private static Set<String> stopwords = new HashSet<>();
     private static Text outputKey = new Text();
 
-    public static void main(String... args) throws IOException, InterruptedException {
-        new TokenizerMapper().setup(null);
-    }
-
     /**
      * Parses stopwords file
      *
@@ -38,7 +34,7 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
         super.setup(context);
-        stopwords = parseFile("stopswords.txt");
+        stopwords = parseFile("stopwords.txt");
     }
 
     /**
@@ -55,6 +51,8 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
         String reviewText = jsonObject.getString("reviewText");
         String category = jsonObject.getString("category");
         String docId = jsonObject.getString("asin");
+        String unixReviewTime = jsonObject.getString("unixReviewTime");
+        String reviewerId = jsonObject.getString("reviewerId");
 
         //1.1 - Tokenization to unigrams
         // 1.2 lowercase
@@ -64,7 +62,11 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
                 if (terms.containsKey(token)) {
                     terms.get(token).frequency.set(terms.get(token).frequency.get() + 1);
                 } else {
-                    terms.put(token, new DocIdFreq(new Text(docId), new LongWritable(1), new Text(category)));
+                    DocIdFreq docIdFreq = new DocIdFreq();
+                    docIdFreq.docId = new Text(docId + ";" + unixReviewTime + ";" + reviewerId);
+                    docIdFreq.frequency = new LongWritable(1);
+                    docIdFreq.category = new Text(category);
+                    terms.put(token, docIdFreq);
                 }
             }
         }
@@ -84,11 +86,11 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
         return result;
     }
 
-    private static Set<String> parseFile(String uri) {
+    private Set<String> parseFile(String uri) {
         Set<String> list = new HashSet<>();
         BufferedReader fis = null;
         try {
-            fis = new BufferedReader(new InputStreamReader(Map.class.getResourceAsStream(uri), StandardCharsets.UTF_8));
+            fis = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(uri), StandardCharsets.UTF_8));
             String pattern;
             while ((pattern = fis.readLine()) != null) {
                 list.add(pattern);

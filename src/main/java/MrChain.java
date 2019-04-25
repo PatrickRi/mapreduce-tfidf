@@ -44,7 +44,6 @@ public class MrChain {
         conf = new Configuration();
         conf.set("TOTAL_DOCUMENTCOUNT", Long.toString(count)); // inject counter value into job
         job = Job.getInstance(conf, "MrCHAIN-TFIDF");
-        job.setNumReduceTasks(2);
         job.setJarByClass(MrChain.class);
         job.setMapperClass(TokenizerMapper.class);
         job.setMapOutputKeyClass(Text.class);
@@ -73,7 +72,6 @@ public class MrChain {
         job.setReducerClass(Chi2Reducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        job.setOutputFormatClass(SequenceFileOutputFormat.class);
         FileInputFormat.setInputDirRecursive(job, true);
         FileInputFormat.addInputPath(job, new Path(args[1] + "/2"));
         FileOutputFormat.setOutputPath(job, new Path(args[1] + "/3"));
@@ -86,7 +84,6 @@ public class MrChain {
         conf = new Configuration();
         job = Job.getInstance(conf, "MrCHAIN-MERGE");
         job.setNumReduceTasks(1);
-        job.setInputFormatClass(SequenceFileInputFormat.class);
         job.setJarByClass(MrChain.class);
         job.setMapperClass(MergeMapper.class);
         job.setMapOutputKeyClass(Text.class);
@@ -110,7 +107,7 @@ public class MrChain {
         job.setJarByClass(MrChain.class);
         job.setReducerClass(FilterTfIdfReducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
+        job.setOutputValueClass(DocIdFreqArray.class);
         FileInputFormat.setInputDirRecursive(job, true);
         MultipleInputs.addInputPath(job, new Path(args[1] + "/2"), SequenceFileInputFormat.class, TfIdfMergeMapper.class);
         MultipleInputs.addInputPath(job, new Path(args[1] + "/4"), TextInputFormat.class, MergedListMapper.class);

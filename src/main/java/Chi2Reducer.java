@@ -48,7 +48,7 @@ public class Chi2Reducer extends Reducer<Text, Chi2DataArray, Text, Text> {
         List<Chi2Data> values = new ArrayList<>();
         for (Chi2DataArray arr : valuesIterablee) {
             for (Writable val : arr.get()) {
-                values.add((Chi2Data) val);
+                values.add(new Chi2Data((Chi2Data) val));
             }
         }
         //Use PriorityQueue for obtaining the top 200 terms using natural sorting of the used Chi2Data objects

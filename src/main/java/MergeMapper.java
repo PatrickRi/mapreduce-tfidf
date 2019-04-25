@@ -11,7 +11,10 @@ import java.io.IOException;
  * KEYOUT: Text - constant key "KEY"
  * VALUEOUT: Text - term
  */
-public class MergeMapper extends Mapper<Text, Text, Text, Text> {
+public class MergeMapper extends Mapper<Object, Text, Text, Text> {
+
+    private Text outputValue = new Text();
+    private Text outputKey = new Text("KEY");
 
     /**
      * @param key     category
@@ -21,7 +24,16 @@ public class MergeMapper extends Mapper<Text, Text, Text, Text> {
      * @throws InterruptedException ex
      */
     @Override
-    protected void map(Text key, Text value, Context context) throws IOException, InterruptedException {
-        context.write(new Text("KEY"), value);
+    protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+        String[] values = value.toString().split("\\s");
+        if(values.length > 1) {
+            for(int i = 1; i < values.length;i++) {
+                String s = values[i].trim();
+                if(!s.isEmpty()) {
+                    outputValue.set(values[i]);
+                    context.write(outputKey, outputValue);
+                }
+            }
+        }
     }
 }
