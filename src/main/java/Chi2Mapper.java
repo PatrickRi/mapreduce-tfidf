@@ -34,7 +34,8 @@ public class Chi2Mapper extends Mapper<Text, DocIdFreqArray, Text, Chi2DataArray
             if (categories.containsKey(docIdFreq.category)) {
                 HashMap<Text, Chi2Data> categoryData = categories.get(docIdFreq.category);
                 if (categoryData.containsKey(term)) {
-                    categoryData.get(term).A.set(categoryData.get(term).A.get() + 1);// number of documents containing t in c
+                    categoryData.get(term).A.set(categoryData.get(term).A.get() + 1);// number of documents
+                    // containing t in c
                 } else {
                     categoryData.put(term, new Chi2Data(term, 1L, 0L, 0L, 0L));
                 }
@@ -47,7 +48,9 @@ public class Chi2Mapper extends Mapper<Text, DocIdFreqArray, Text, Chi2DataArray
         // B
         for (Map.Entry<Text, HashMap<Text, Chi2Data>> category : categories.entrySet()) {
             for (Map.Entry<Text, Chi2Data> currentTerm : category.getValue().entrySet()) {
-                currentTerm.getValue().B.set(this.countDocumentsWithTermNotInCategory(categories, currentTerm.getKey(), category.getKey()));
+                currentTerm.getValue().B.set(this.countDocumentsWithTermNotInCategory(categories,
+                                                                                      currentTerm.getKey(),
+                                                                                      category.getKey()));
             }
         }
         // D
@@ -66,7 +69,8 @@ public class Chi2Mapper extends Mapper<Text, DocIdFreqArray, Text, Chi2DataArray
         }
     }
 
-    private long countDocumentsWithTermNotInCategory(HashMap<Text, HashMap<Text, Chi2Data>> categories, Text term, Text category) {
+    private long countDocumentsWithTermNotInCategory(HashMap<Text, HashMap<Text, Chi2Data>> categories, Text term,
+                                                     Text category) {
         long count = 0;
         for (Text categoryKey : categories.keySet()) {
             if (!category.toString().equals(categories.toString())) { // all categories except current

@@ -44,7 +44,8 @@ public class Chi2Reducer extends Reducer<Text, Chi2DataArray, Text, Text> {
      * @throws InterruptedException ex
      */
     @Override
-    protected void reduce(Text category, Iterable<Chi2DataArray> valuesIterablee, Context context) throws IOException, InterruptedException {
+    protected void reduce(Text category, Iterable<Chi2DataArray> valuesIterablee, Context context) throws IOException
+            , InterruptedException {
         List<Chi2Data> values = new ArrayList<>();
         for (Chi2DataArray arr : valuesIterablee) {
             for (Writable val : arr.get()) {
@@ -59,7 +60,8 @@ public class Chi2Reducer extends Reducer<Text, Chi2DataArray, Text, Text> {
             chi2Data.C.set(values.size() - chi2Data.A.get());
             // calc D = N -(A+B+C)
             chi2Data.D.set(documentCounter - chi2Data.A.get() - chi2Data.B.get() - chi2Data.C.get());
-            queue.add(new Chi2ValuePair(calculateChi2(chi2Data.A.get(), chi2Data.B.get(), chi2Data.C.get(), chi2Data.D.get()), chi2Data));
+            queue.add(new Chi2ValuePair(calculateChi2(chi2Data.A.get(), chi2Data.B.get(), chi2Data.C.get(),
+                                                      chi2Data.D.get()), chi2Data));
         }
         StringBuilder sb = new StringBuilder();
         //get top 200

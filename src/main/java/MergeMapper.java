@@ -26,10 +26,10 @@ public class MergeMapper extends Mapper<Object, Text, Text, Text> {
     @Override
     protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
         String[] values = value.toString().split("\\s");
-        if(values.length > 1) {
-            for(int i = 1; i < values.length;i++) {
+        if (values.length > 1) {
+            for (int i = 1; i < values.length; i++) {
                 String s = values[i].trim();
-                if(!s.isEmpty()) {
+                if (!s.isEmpty()) {
                     outputValue.set(values[i]);
                     context.write(outputKey, outputValue);
                 }

@@ -110,7 +110,8 @@ public class MrChain {
         job.setOutputValueClass(DocIdFreqArray.class);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
         FileInputFormat.setInputDirRecursive(job, true);
-        MultipleInputs.addInputPath(job, new Path(args[1] + "/2"), SequenceFileInputFormat.class, TfIdfMergeMapper.class);
+        MultipleInputs.addInputPath(job, new Path(args[1] + "/2"), SequenceFileInputFormat.class,
+                                    TfIdfMergeMapper.class);
         MultipleInputs.addInputPath(job, new Path(args[1] + "/4"), TextInputFormat.class, MergedListMapper.class);
         FileOutputFormat.setOutputPath(job, new Path(args[1] + "/5"));
         boolean phase5succeeded = job.waitForCompletion(true);
@@ -132,6 +133,10 @@ public class MrChain {
         FileInputFormat.setInputDirRecursive(job, true);
         FileInputFormat.addInputPath(job, new Path(args[1] + "/2"));
         FileOutputFormat.setOutputPath(job, new Path(args[1] + "/6"));
+        boolean phase6succeeded = job.waitForCompletion(true);
+        if (!phase6succeeded) {
+            throw new IllegalStateException("Job failed!");
+        }
 
         // PHASE 7
         conf = new Configuration();

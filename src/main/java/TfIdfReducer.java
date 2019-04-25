@@ -11,7 +11,8 @@ import java.util.ArrayList;
  * KEYIN: Text - extracted token/term
  * VALUEIN: DocIdFreq, encapsulating documentId, frequency of the term, and the document category
  * KEYOUT: Text - token/term
- * VALUEOUT: DocIdFreqArray, list of all DocIdFreq objects belonging to the term (one per document for the respective term)
+ * VALUEOUT: DocIdFreqArray, list of all DocIdFreq objects belonging to the term (one per document for the respective
+ * term)
  */
 public class TfIdfReducer extends Reducer<Text, DocIdFreq, Text, DocIdFreqArray> {
 
@@ -38,7 +39,8 @@ public class TfIdfReducer extends Reducer<Text, DocIdFreq, Text, DocIdFreqArray>
      * @throws IOException          ex
      * @throws InterruptedException ex
      */
-    public void reduce(Text term, Iterable<DocIdFreq> values, Context context) throws IOException, InterruptedException {
+    public void reduce(Text term, Iterable<DocIdFreq> values, Context context) throws IOException,
+            InterruptedException {
         ArrayList<DocIdFreq> resultSet = new ArrayList<>();
         int f_t = 0;
         // count number of documents and repack in new HashSet because cannot use iterable twice
@@ -54,7 +56,7 @@ public class TfIdfReducer extends Reducer<Text, DocIdFreq, Text, DocIdFreqArray>
         //Filter tfidf for > 0, as requested by the assignment description (weight_{i,j,n}>0)
         ArrayList<DocIdFreq> filteredResultSet = new ArrayList<>();
         for (DocIdFreq val : resultSet) {
-            if(val.tfidf.get() > 0.0) {
+            if (val.tfidf.get() > 0.0) {
                 filteredResultSet.add(val);
             }
         }

@@ -24,7 +24,7 @@ public class MergedListMapper extends Mapper<Object, Text, Text, DocIdFreqArray>
      */
     @Override
     protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-        for(String s : value.toString().split(" ")) {
+        for (String s : value.toString().split(" ")) {
             outputKey.set(s);
             context.write(outputKey, empty);
         }

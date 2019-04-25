@@ -6,6 +6,9 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+/**
+ * Encapsulates data about a term and its respective tf_idf score.
+ */
 public class Output1Data implements WritableComparable<Output1Data> {
     public Text term = new Text("");
     public DoubleWritable tfidf = new DoubleWritable(0);

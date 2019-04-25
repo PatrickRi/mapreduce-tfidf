@@ -13,10 +13,12 @@ import java.util.regex.Pattern;
 
 /**
  * Splits the reviewText field of JSON documents into single tokens, and additionally extracts the category for later.
+ * Not any of the fields per document are unique, therefore we use a compound key: "asin+unixReviewTime+reviewerId".
  * KEYIN: Object (index)
  * VALUEIN: line of Text
  * KEYOUT: Text - extracted token/term
- * VALUEOUT: DocIdFreq, encapsulating documentId, frequency of the term, and the document category (for seocnd part of the assignment)
+ * VALUEOUT: DocIdFreq, encapsulating documentId, frequency of the term, and the document category (for seocnd part
+ * of the assignment)
  */
 public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
 
@@ -51,8 +53,8 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
         String reviewText = jsonObject.getString("reviewText");
         String category = jsonObject.getString("category");
         String docId = jsonObject.getString("asin");
-        String unixReviewTime = jsonObject.getString("unixReviewTime");
-        String reviewerId = jsonObject.getString("reviewerId");
+        Long unixReviewTime = jsonObject.getLong("unixReviewTime");
+        String reviewerId = jsonObject.getString("reviewerID");
 
         //1.1 - Tokenization to unigrams
         // 1.2 lowercase
@@ -90,7 +92,8 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
         Set<String> list = new HashSet<>();
         BufferedReader fis = null;
         try {
-            fis = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(uri), StandardCharsets.UTF_8));
+            fis = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(uri),
+                                                           StandardCharsets.UTF_8));
             String pattern;
             while ((pattern = fis.readLine()) != null) {
                 list.add(pattern);
