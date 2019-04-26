@@ -25,6 +25,7 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
     public static Pattern CAPTURE_WORDS = Pattern.compile("([\\p{L}0-9][\\p{L}0-9]*)", Pattern.UNICODE_CASE);
     private static Set<String> stopwords = new HashSet<>();
     private static Text outputKey = new Text();
+    private static Long sequence = 0L;
 
     /**
      * Parses stopwords file
@@ -52,9 +53,28 @@ public class TokenizerMapper extends Mapper<Object, Text, Text, DocIdFreq> {
         JSONObject jsonObject = new JSONObject(value.toString());
         String reviewText = jsonObject.getString("reviewText");
         String category = jsonObject.getString("category");
-        String docId = jsonObject.getString("asin");
-        Long unixReviewTime = jsonObject.getLong("unixReviewTime");
-        String reviewerId = jsonObject.getString("reviewerID");
+        sequence = sequence + 1;
+        String docId;
+        Long unixReviewTime;
+        String reviewerId;
+        try {
+            reviewerId = jsonObject.getString("reviewerID");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            reviewerId = sequence.toString();
+        }
+        try {
+            docId = jsonObject.getString("asin");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            docId = sequence.toString();
+        }
+        try {
+            unixReviewTime = jsonObject.getLong("unixReviewTime");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            unixReviewTime = sequence;
+        }
 
         //1.1 - Tokenization to unigrams
         // 1.2 lowercase

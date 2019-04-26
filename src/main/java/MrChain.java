@@ -27,7 +27,6 @@ public class MrChain {
         // PHASE 1 - count all documents for later
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "MrCHAIN-COUNT-DOCUMENTS");
-        job.setNumReduceTasks(2);
         job.setJarByClass(MrChain.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(NullWritable.class);
@@ -63,7 +62,6 @@ public class MrChain {
         conf = new Configuration();
         conf.set("TOTAL_DOCUMENTCOUNT", Long.toString(count)); // inject counter value into job
         job = Job.getInstance(conf, "MrCHAIN-CHI2");
-        job.setNumReduceTasks(2);
         job.setInputFormatClass(SequenceFileInputFormat.class);
         job.setJarByClass(MrChain.class);
         job.setMapperClass(Chi2Mapper.class);
